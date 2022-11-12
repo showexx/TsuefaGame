@@ -1,13 +1,19 @@
-package service;
+package io.proj3ct.TsuefaGame.service;
 
-import config.BotConfig;
+import io.proj3ct.TsuefaGame.config.BotConfig;
+import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
+@Component
 public class TelegramBot extends TelegramLongPollingBot {
-    BotConfig config;
+    final BotConfig config;
+
+    public TelegramBot(BotConfig config) {
+        this.config = config;
+    }
 
     @Override
     public String getBotUsername() {
@@ -25,22 +31,19 @@ public class TelegramBot extends TelegramLongPollingBot {
             String messageText = update.getMessage().getText();
             long chatId = update.getMessage().getChatId();
 
-
             switch (messageText) {
                 case "/start":
                     sendMessage(chatId, "Hi");
                     break;
-                default:
-
-                    sendMessage(chatId, "Sorry, command was not recognized");
             }
         }
     }
 
     private void sendMessage(long chatId, String textToSend) {
         SendMessage sendMessage = new SendMessage();
-        sendMessage.setText(textToSend);
         sendMessage.setChatId(String.valueOf(chatId));
+        sendMessage.setText(textToSend);
+
         try {
             execute(sendMessage);
         } catch (TelegramApiException e) {
