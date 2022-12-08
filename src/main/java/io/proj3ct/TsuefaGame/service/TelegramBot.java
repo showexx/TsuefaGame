@@ -2,13 +2,9 @@ package io.proj3ct.TsuefaGame.service;
 
 import com.vdurmont.emoji.EmojiParser;
 import io.proj3ct.TsuefaGame.config.BotConfig;
-import io.proj3ct.TsuefaGame.model.User;
-import io.proj3ct.TsuefaGame.model.UserRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
-import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
@@ -19,9 +15,6 @@ public class TelegramBot extends TelegramLongPollingBot {
     //Ножницы = 0
     //Камень = 1
     //Бумага = 2
-
-    @Autowired
-    private UserRepository userRepository;
 
     final BotConfig config;
 
@@ -47,7 +40,6 @@ public class TelegramBot extends TelegramLongPollingBot {
 
             switch (messageText) {
                 case "/start":
-                    regiserUser(update.getMessage());
                     sendMessage(chatId, sendHelloMessage());
                     menuSelectObject(chatId);
                     break;
@@ -59,20 +51,6 @@ public class TelegramBot extends TelegramLongPollingBot {
             }
         }
     }
-
-    private void regiserUser(Message message) {
-        if (userRepository.findById(message.getChatId()).isEmpty()) {
-            var chatId = message.getChatId();
-            var chat = message.getChat();
-
-            User user = new User();
-            user.setChatId(chatId);
-            user.setUserName(chat.getUserName());
-
-            userRepository.save(user);
-        }
-    }
-
 
     private String sendHelloMessage() {
         String helloMessage = EmojiParser.parseToUnicode("Привет!\uD83D\uDC4B" + "\n"
