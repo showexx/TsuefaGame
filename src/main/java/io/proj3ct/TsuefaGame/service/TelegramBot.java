@@ -13,7 +13,6 @@ import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Arrays;
 
 @Component
 public class TelegramBot extends TelegramLongPollingBot {
@@ -72,18 +71,21 @@ public class TelegramBot extends TelegramLongPollingBot {
                     break;
                 default:
                     String opponentName = update.getMessage().getText();
-                    Path opponent = Paths.get("C:\\var\\" + opponentName + ".txt");
-                    if (Files.exists(opponent)) {
-                        menuSelectObject(chatId, userName, opponentName);
-
-                    } else {
-                        sendMessage(chatId, "Неверная команда!");
-                    }
+                    checkOpponent(chatId,opponentName,userName);
             }
         }
     }
 
-    private ReplyKeyboardMarkup menuSelectObject(long chatId, String userName, String opponentName) {
+    private void checkOpponent(long chatId, String opponentName, String userName){
+        Path opponent = Paths.get("C:\\var\\" + opponentName + ".txt");
+        if (Files.exists(opponent)) {
+
+        } else {
+            sendMessage(chatId, "Неверная команда!");
+        }
+    }
+
+    private ReplyKeyboardMarkup menuSelectObject(long chatId) {
         SendMessage message = new SendMessage();
         KeyboardMenu keyboardMenu = new KeyboardMenu();
 
@@ -92,8 +94,6 @@ public class TelegramBot extends TelegramLongPollingBot {
         message.setReplyMarkup(keyboardMenu.getCreateKeyboard());
         executeMessage(message);
 
-        comparisonSubject(userName, opponentName);
-
         return keyboardMenu.getCreateKeyboard();
     }
 
@@ -101,14 +101,7 @@ public class TelegramBot extends TelegramLongPollingBot {
         registerFile(stringChatId, userName, subject, path);
     }
 
-    private void comparisonSubject(String myUserName, String opponentUserName) {
-        String[] myUser = new String[3];
-        readFile(myUserName, myUser);
-        System.out.println(myUser[2]);
-    }
-
     private void readFile(String userName, String[] array) {
-
         try {
             File file = new File("C:\\var\\" + userName + ".txt");
             FileReader fr = new FileReader(file);
