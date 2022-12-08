@@ -9,12 +9,22 @@ import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
+import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.Arrays;
+
 @Component
 public class TelegramBot extends TelegramLongPollingBot {
 
     //Ножницы = 0
     //Камень = 1
     //Бумага = 2
+
+    final String HELLO_MESSAGE = EmojiParser.parseToUnicode("Привет!\uD83D\uDC4B" + "\n"
+            + "ЦУ-Е-ФА - это самая популярная и самая простая игра!\uD83C\uDFB2" + "\n"
+            + "Для игры отправьте ник друга(зарегистрированного в боте).");
 
     final BotConfig config;
 
@@ -36,30 +46,44 @@ public class TelegramBot extends TelegramLongPollingBot {
     public void onUpdateReceived(Update update) {
         if (update.hasMessage() && update.getMessage().hasText()) {
             String messageText = update.getMessage().getText();
+            String userName = update.getMessage().getChat().getUserName();
+
             long chatId = update.getMessage().getChatId();
+
+            String path = "C:\\var\\" + userName + ".txt";
+            String stringChatId = Long.toString(chatId);
 
             switch (messageText) {
                 case "/start":
-                    sendMessage(chatId, sendHelloMessage());
-                    menuSelectObject(chatId);
+                    sendMessage(chatId, HELLO_MESSAGE);
+                    registerUser(stringChatId, userName, null, path);
                     break;
                 case "Ножницы✂":
-                    sendMessage(chatId,"noj");
+                    sendMessage(chatId, "Вы выбрали ножницы!");
+                    saveSubject(stringChatId, userName, "0", path);
+                    break;
+                case "Камень\uD83E\uDEA8":
+                    sendMessage(chatId, "Вы выбрали камень!");
+                    saveSubject(stringChatId, userName, "1", path);
+                    break;
+                case "Бумага\uD83D\uDCC3":
+                    sendMessage(chatId, "Вы выбрали бумагу!");
+                    saveSubject(stringChatId, userName, "2", path);
                     break;
                 default:
+                    String opponentName = update.getMessage().getText();
+                    Path opponent = Paths.get("C:\\var\\" + opponentName + ".txt");
+                    if (Files.exists(opponent)) {
+                        menuSelectObject(chatId, userName, opponentName);
 
+                    } else {
+                        sendMessage(chatId, "Неверная команда!");
+                    }
             }
         }
     }
 
-    private String sendHelloMessage() {
-        String helloMessage = EmojiParser.parseToUnicode("Привет!\uD83D\uDC4B" + "\n"
-                + "ЦУ-Е-ФА - это самая популярная и самая простая игра!\uD83C\uDFB2" + "\n"
-                + "Для игры отправьте ник друга(зарегистрированного в боте).");
-        return helloMessage;
-    }
-
-    private ReplyKeyboardMarkup menuSelectObject(long chatId) {
+    private ReplyKeyboardMarkup menuSelectObject(long chatId, String userName, String opponentName) {
         SendMessage message = new SendMessage();
         KeyboardMenu keyboardMenu = new KeyboardMenu();
 
@@ -68,7 +92,53 @@ public class TelegramBot extends TelegramLongPollingBot {
         message.setReplyMarkup(keyboardMenu.getCreateKeyboard());
         executeMessage(message);
 
+        comparisonSubject(userName, opponentName);
+
         return keyboardMenu.getCreateKeyboard();
+    }
+
+    private void saveSubject(String stringChatId, String userName, String subject, String path) {
+        registerFile(stringChatId, userName, subject, path);
+    }
+
+    private void comparisonSubject(String myUserName, String opponentUserName) {
+        String[] myUser = new String[3];
+        readFile(myUserName, myUser);
+        System.out.println(myUser[2]);
+    }
+
+    private void readFile(String userName, String[] array) {
+
+        try {
+            File file = new File("C:\\var\\" + userName + ".txt");
+            FileReader fr = new FileReader(file);
+            BufferedReader reader = new BufferedReader(fr);
+            String line = reader.readLine();
+            while (line != null) {
+                for (int i = 0; i < array.length; i++) {
+                    array[i] = line;
+                    line = reader.readLine();
+                }
+            }
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void registerUser(String stringChatId, String userName, String subject, String path) {
+        registerFile(stringChatId, userName, subject, path);
+    }
+
+    private void registerFile(String stringChatId, String userName, String subject, String path) {
+        try {
+            BufferedWriter writer = new BufferedWriter(new FileWriter(path));
+            writer.write("chatId: " + stringChatId + "\n" + "userName: " + userName + "\n" + "subject: " + subject);
+            writer.close();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     private void sendMessage(long chatId, String textToSend) {
