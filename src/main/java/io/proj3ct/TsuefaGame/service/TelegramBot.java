@@ -71,15 +71,22 @@ public class TelegramBot extends TelegramLongPollingBot {
                     break;
                 default:
                     String opponentName = update.getMessage().getText();
-                    checkOpponent(chatId,opponentName,userName);
+                    checkOpponent(chatId, opponentName, userName);
             }
         }
     }
 
-    private void checkOpponent(long chatId, String opponentName, String userName){
+    private void checkOpponent(long chatId, String opponentName, String userName) {
         Path opponent = Paths.get("C:\\var\\" + opponentName + ".txt");
-        if (Files.exists(opponent)) {
+        String array[] = new String[3];
 
+        if (Files.exists(opponent)) {
+            FileCheck fileCheck = new FileCheck();
+            try {
+                sendMessage(Long.parseLong(fileCheck.readFirstLine(opponentName, array)), userName + " предлагает вам сыграть,согласны?");
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
         } else {
             sendMessage(chatId, "Неверная команда!");
         }
@@ -101,24 +108,6 @@ public class TelegramBot extends TelegramLongPollingBot {
         registerFile(stringChatId, userName, subject, path);
     }
 
-    private void readFile(String userName, String[] array) {
-        try {
-            File file = new File("C:\\var\\" + userName + ".txt");
-            FileReader fr = new FileReader(file);
-            BufferedReader reader = new BufferedReader(fr);
-            String line = reader.readLine();
-            while (line != null) {
-                for (int i = 0; i < array.length; i++) {
-                    array[i] = line;
-                    line = reader.readLine();
-                }
-            }
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
 
     private void registerUser(String stringChatId, String userName, String subject, String path) {
         registerFile(stringChatId, userName, subject, path);
