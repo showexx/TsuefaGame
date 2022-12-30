@@ -21,9 +21,7 @@ public class TelegramBot extends TelegramLongPollingBot {
     //Камень = 1
     //Бумага = 2
 
-    final String HELLO_MESSAGE = EmojiParser.parseToUnicode("Привет!\uD83D\uDC4B" + "\n"
-            + "ЦУ-Е-ФА - это самая популярная и самая простая игра!\uD83C\uDFB2" + "\n"
-            + "Для игры отправьте ник друга(зарегистрированного в боте).");
+    final String HELLO_MESSAGE = EmojiParser.parseToUnicode("Привет!\uD83D\uDC4B" + "\n" + "ЦУ-Е-ФА - это самая популярная и самая простая игра!\uD83C\uDFB2" + "\n" + "Для игры отправьте ник друга(зарегистрированного в боте).");
 
     final BotConfig config;
 
@@ -69,9 +67,13 @@ public class TelegramBot extends TelegramLongPollingBot {
                     sendMessage(chatId, "Вы выбрали бумагу!");
                     saveSubject(stringChatId, userName, "2", path);
                     break;
+                case "Да!":
+                    menuSelectObject(chatId);
+                    break;
+                case "Нет!":
+                    break;
                 default:
-                    String opponentName = update.getMessage().getText();
-                    checkOpponent(chatId, opponentName, userName);
+                    checkOpponent(chatId, messageText, userName);
             }
         }
     }
@@ -80,16 +82,34 @@ public class TelegramBot extends TelegramLongPollingBot {
         Path opponent = Paths.get("C:\\var\\" + opponentName + ".txt");
         String array[] = new String[3];
 
-        if (Files.exists(opponent)) {
-            FileCheck fileCheck = new FileCheck();
-            try {
-                sendMessage(Long.parseLong(fileCheck.readFirstLine(opponentName, array)), userName + " предлагает вам сыграть,согласны?");
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
+        if (opponentName.equals(userName)) {
+            sendMessage(chatId, "Неверное имя пользователя!");
         } else {
-            sendMessage(chatId, "Неверная команда!");
+            if (Files.exists(opponent)) {
+                FileCheck fileCheck = new FileCheck();
+                try {
+                    long idOpponent = Long.parseLong(fileCheck.readFirstLine(opponentName, array));
+                    sendMessage(idOpponent, userName + " предлагает вам сыграть,согласны?");
+                    menuSelectYesOrNot(idOpponent);
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            } else {
+                sendMessage(chatId, "Неверная команда!");
+            }
         }
+    }
+
+    private ReplyKeyboardMarkup menuSelectYesOrNot(long chatId) {
+        SendMessage message = new SendMessage();
+        KeyboardYesOrNot keyboardYesOrNot = new KeyboardYesOrNot();
+
+        message.setChatId(String.valueOf(chatId));
+        message.setText(EmojiParser.parseToUnicode("Выбирай!"));
+        message.setReplyMarkup(keyboardYesOrNot.getCreateKeyboard());
+        executeMessage(message);
+
+        return keyboardYesOrNot.getCreateKeyboard();
     }
 
     private ReplyKeyboardMarkup menuSelectObject(long chatId) {
