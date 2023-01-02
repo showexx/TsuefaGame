@@ -9,7 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class KeyboardMenu {
-    private ReplyKeyboardMarkup createKeyboard(){
+    private ReplyKeyboardMarkup createKeyboard() {
         ReplyKeyboardMarkup replyKeyboardMarkup = new ReplyKeyboardMarkup();
 
         List<KeyboardRow> keyboardRows = new ArrayList<>();
@@ -34,6 +34,11 @@ public class KeyboardMenu {
         row = new KeyboardRow();
 
         row.add(putScissors());
+
+        keyboardRows.add(row);
+        row = new KeyboardRow();
+
+        row.add(readyButton());
 
         keyboardRows.add(row);
         replyKeyboardMarkup.setKeyboard(keyboardRows);
@@ -63,7 +68,13 @@ public class KeyboardMenu {
         return paper;
     }
 
-    public ReplyKeyboardMarkup getCreateKeyboard(){
+    private KeyboardButton readyButton() {
+        KeyboardButton ready = new KeyboardButton();
+        ready.setText(EmojiParser.parseToUnicode("Готов✅"));
+        return ready;
+    }
+
+    public ReplyKeyboardMarkup getCreateKeyboard() {
         return createKeyboard();
     }
 }

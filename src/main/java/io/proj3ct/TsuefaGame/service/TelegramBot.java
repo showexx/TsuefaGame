@@ -13,6 +13,10 @@ import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Scanner;
 
 @Component
 public class TelegramBot extends TelegramLongPollingBot {
@@ -80,23 +84,60 @@ public class TelegramBot extends TelegramLongPollingBot {
 
     private void checkOpponent(long chatId, String opponentName, String userName) {
         Path opponent = Paths.get("C:\\var\\" + opponentName + ".txt");
-        String array[] = new String[3];
+        Path user = Paths.get("C:\\var\\" + userName + ".txt");
 
-        if (opponentName.equals(userName)) {
-            sendMessage(chatId, "Неверное имя пользователя!");
+        String array[] = new String[4];
+
+        if (opponentName.equals("null")) {
+            sendMessage(chatId, "Укажите имя пользователя в настройках");
         } else {
-            if (Files.exists(opponent)) {
-                FileCheck fileCheck = new FileCheck();
-                try {
-                    long idOpponent = Long.parseLong(fileCheck.readFirstLine(opponentName, array));
-                    sendMessage(idOpponent, userName + " предлагает вам сыграть,согласны?");
-                    menuSelectYesOrNot(idOpponent);
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
-                }
+            if (opponentName.equals(userName)) {
+                sendMessage(chatId, "Неверное имя пользователя!");
             } else {
-                sendMessage(chatId, "Неверная команда!");
+                if (Files.exists(opponent)) {
+                    writeOpponent(opponent, userName);
+                    writeOpponent(user, opponentName);
+                    goPlay(opponentName, userName, array, chatId);
+                } else {
+                    sendMessage(chatId, "Неверная команда!");
+                }
             }
+        }
+    }
+
+    private void writeOpponent(Path opponent, String userName) {
+        ArrayList<String> list = new ArrayList<>();
+        try (Scanner scan = new Scanner(new File(String.valueOf(opponent)))) {
+            while (scan.hasNextLine()) {
+                list.add(scan.nextLine());
+            }
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+
+        String[] array = list.toArray(new String[4]);
+        array[3] = "opponent: " + userName;
+
+        try {
+            BufferedWriter writer = new BufferedWriter(new FileWriter(String.valueOf(opponent)));
+            writer.write(array[0] + "\n" + array[1] + "\n" + array[2]+ "\n" + array[3]);
+            writer.close();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+        System.out.println(Arrays.toString(array));
+    }
+
+    private void goPlay(String opponentName, String userName, String[] array, long chatId) {
+        FileCheck fileCheck = new FileCheck();
+        try {
+            long idOpponent = Long.parseLong(fileCheck.readFirstLine(opponentName, array));
+            sendMessage(idOpponent, userName + " предлагает вам сыграть, согласны?");
+            menuSelectYesOrNot(idOpponent);
+            menuSelectObject(chatId);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
     }
 
@@ -125,18 +166,13 @@ public class TelegramBot extends TelegramLongPollingBot {
     }
 
     private void saveSubject(String stringChatId, String userName, String subject, String path) {
-        registerFile(stringChatId, userName, subject, path);
+        registerUser(stringChatId, userName, subject, path);
     }
-
 
     private void registerUser(String stringChatId, String userName, String subject, String path) {
-        registerFile(stringChatId, userName, subject, path);
-    }
-
-    private void registerFile(String stringChatId, String userName, String subject, String path) {
         try {
             BufferedWriter writer = new BufferedWriter(new FileWriter(path));
-            writer.write("chatId: " + stringChatId + "\n" + "userName: " + userName + "\n" + "subject: " + subject);
+            writer.write("chatId: " + stringChatId + "\n" + "userName: " + userName + "\n" + "subject: " + subject + "\n" + "opponent: " + null);
             writer.close();
         } catch (IOException e) {
             throw new RuntimeException(e);

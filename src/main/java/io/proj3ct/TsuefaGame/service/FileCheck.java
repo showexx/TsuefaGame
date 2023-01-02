@@ -31,4 +31,12 @@ public class FileCheck {
 
         return thirdLine.substring(9);
     }
+
+    public String readFourthlINE(String userName, String array[]) throws IOException {
+        File file = new File("C:\\var\\" + userName + ".txt");
+        String thirdLine = FileUtils.readLines(file).get(3);
+
+        return thirdLine.substring(10);
+    }
+
 }
