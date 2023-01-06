@@ -76,9 +76,26 @@ public class TelegramBot extends TelegramLongPollingBot {
                     break;
                 case "Нет!":
                     break;
+                case "Готов✅":
+                    ready(userName, chatId);
+                    break;
                 default:
                     checkOpponent(chatId, messageText, userName);
             }
+        }
+    }
+
+    private void ready(String userName, long chatId) {
+        FileCheck fileCheck = new FileCheck();
+        String array[] = new String[4];
+        try {
+            if(fileCheck.readThirdLine(userName, array).equals("null")){
+                sendMessage(chatId, "Сначала выберите оружие");
+            }else {
+
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
     }
 
@@ -120,7 +137,7 @@ public class TelegramBot extends TelegramLongPollingBot {
 
         try {
             BufferedWriter writer = new BufferedWriter(new FileWriter(String.valueOf(opponent)));
-            writer.write(array[0] + "\n" + array[1] + "\n" + array[2]+ "\n" + array[3]);
+            writer.write(array[0] + "\n" + array[1] + "\n" + array[2] + "\n" + array[3]);
             writer.close();
         } catch (IOException e) {
             throw new RuntimeException(e);
